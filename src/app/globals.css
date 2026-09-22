@@ -1,0 +1,159 @@
+@import "tailwindcss";
+
+/* ───────────────────────── BruFly design tokens ─────────────────────────
+   Brand colours are PLACEHOLDERS until the authentic BruFly logo and palette
+   are supplied. Edit these tokens only; components read from them.        */
+:root {
+  --brand-ocean: #0b2a4a;      /* deep navy: headings, header, footer */
+  --brand-ocean-700: #143a63;
+  --brand-ocean-100: #e3ecf6;
+  --brand-sun: #f2701d;        /* sunbird orange: primary action */
+  --brand-sun-600: #d85f12;
+  --brand-sun-100: #fdebdd;
+  --brand-sky: #2f8fd6;        /* links, route line */
+  --brand-sky-100: #e4f1fb;
+  --sand-50: #faf7f2;          /* page background */
+  --sand-100: #f3ede3;
+  --sand-200: #e8dfd0;
+  --ink: #16213a;
+  --ink-2: #4a556b;
+  --ink-3: #7b8499;
+  --line: #e2ddd3;
+  --surface: #ffffff;
+  --good: #1f8a5b;
+  --good-100: #e3f5ec;
+  --warn: #b7791f;
+  --warn-100: #fbf1dd;
+  --bad: #c43d3d;
+  --bad-100: #fbe5e5;
+  --radius: 14px;
+  --radius-lg: 22px;
+  --shadow-sm: 0 1px 2px rgba(22, 33, 58, 0.06), 0 1px 1px rgba(22, 33, 58, 0.04);
+  --shadow-md: 0 8px 24px -12px rgba(22, 33, 58, 0.25), 0 2px 6px -2px rgba(22, 33, 58, 0.08);
+  --shadow-lg: 0 24px 48px -20px rgba(11, 42, 74, 0.35);
+  --header-h: 68px;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@theme inline {
+  --color-ocean: var(--brand-ocean);
+  --color-ocean-700: var(--brand-ocean-700);
+  --color-ocean-100: var(--brand-ocean-100);
+  --color-sun: var(--brand-sun);
+  --color-sun-600: var(--brand-sun-600);
+  --color-sun-100: var(--brand-sun-100);
+  --color-sky: var(--brand-sky);
+  --color-sky-100: var(--brand-sky-100);
+  --color-sand-50: var(--sand-50);
+  --color-sand-100: var(--sand-100);
+  --color-sand-200: var(--sand-200);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-surface: var(--surface);
+  --color-good: var(--good);
+  --color-good-100: var(--good-100);
+  --color-warn: var(--warn);
+  --color-warn-100: var(--warn-100);
+  --color-bad: var(--bad);
+  --color-bad-100: var(--bad-100);
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display), Georgia, serif;
+  --radius-card: var(--radius);
+  --radius-lg: var(--radius-lg);
+  --shadow-card: var(--shadow-md);
+}
+
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--sand-50);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+body[data-scroll-lock="true"] { overflow: hidden; }
+
+h1, h2, h3, .display { font-family: var(--font-display); letter-spacing: -0.01em; }
+h1 { font-weight: 600; }
+h2 { font-weight: 600; }
+
+/* Focus */
+:focus-visible { outline: 3px solid var(--brand-sky); outline-offset: 2px; border-radius: 6px; }
+
+/* ───────────────────────── Components ───────────────────────── */
+@layer components {
+  .container-x { @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8; }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-[transform,background-color,box-shadow,color] duration-200 select-none;
+    min-height: 48px; padding: 0 1.4rem; transition-timing-function: var(--ease-out);
+  }
+  .btn:active { transform: translateY(1px) scale(0.99); }
+  .btn:disabled, .btn[aria-disabled="true"] { opacity: 0.6; cursor: not-allowed; transform: none; }
+  .btn-primary { background: var(--brand-sun); color: #fff; box-shadow: 0 6px 16px -8px rgba(242, 112, 29, 0.7); }
+  .btn-primary:hover:not(:disabled) { background: var(--brand-sun-600); box-shadow: 0 10px 22px -10px rgba(242, 112, 29, 0.8); }
+  .btn-secondary { background: var(--brand-ocean); color: #fff; }
+  .btn-secondary:hover:not(:disabled) { background: var(--brand-ocean-700); }
+  .btn-outline { background: var(--surface); color: var(--ink); border: 1.5px solid var(--line); }
+  .btn-outline:hover:not(:disabled) { border-color: var(--ink-3); }
+  .btn-ghost { background: transparent; color: var(--brand-ocean); }
+  .btn-ghost:hover:not(:disabled) { background: var(--brand-ocean-100); }
+  .btn-sm { min-height: 40px; padding: 0 1rem; font-size: 0.9rem; }
+  .btn-lg { min-height: 56px; padding: 0 1.8rem; font-size: 1.05rem; }
+
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); }
+  .card-hover { transition: transform 220ms var(--ease-out), box-shadow 220ms var(--ease-out); }
+  .card-hover:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+
+  .field { @apply block w-full rounded-xl border bg-white text-ink placeholder:text-ink-3; border-color: var(--line); min-height: 48px; padding: 0 0.9rem; font-size: 1rem; }
+  .field:focus { border-color: var(--brand-sky); box-shadow: 0 0 0 3px var(--brand-sky-100); outline: none; }
+  .field[aria-invalid="true"] { border-color: var(--bad); }
+  .label { @apply mb-1.5 block text-sm font-semibold text-ink-2; }
+  .hint { @apply mt-1.5 text-sm text-ink-3; }
+  .error-text { @apply mt-1.5 text-sm font-medium; color: var(--bad); }
+
+  .chip { @apply inline-flex items-center gap-1.5 rounded-full border px-3 text-sm font-medium; min-height: 36px; border-color: var(--line); background: var(--surface); color: var(--ink-2); }
+  .chip[aria-pressed="true"], .chip-on { background: var(--brand-ocean); color: #fff; border-color: var(--brand-ocean); }
+
+  .badge { @apply inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold; }
+  .badge-good { background: var(--good-100); color: var(--good); }
+  .badge-warn { background: var(--warn-100); color: var(--warn); }
+  .badge-bad { background: var(--bad-100); color: var(--bad); }
+  .badge-neutral { background: var(--sand-100); color: var(--ink-2); }
+  .badge-ocean { background: var(--brand-ocean-100); color: var(--brand-ocean); }
+
+  .eyebrow { @apply text-xs font-bold uppercase tracking-[0.14em]; color: var(--brand-sun-600); }
+  .prose-bru p { @apply mb-4 leading-relaxed text-ink-2; }
+  .link { color: var(--brand-sky); text-decoration: underline; text-underline-offset: 3px; }
+  .link:hover { color: var(--brand-ocean); }
+}
+
+/* ───────────────────────── Motion ───────────────────────── */
+.reveal { opacity: 0; transform: translateY(14px); transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-out); }
+.reveal.is-visible, [data-reveal].is-visible { opacity: 1; transform: none; }
+@keyframes shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+.skeleton { background: linear-gradient(90deg, var(--sand-100) 0, var(--sand-200) 40px, var(--sand-100) 80px); background-size: 800px 100%; animation: shimmer 1.4s linear infinite; border-radius: 8px; }
+@keyframes fly { to { offset-distance: 100%; } }
+@keyframes dash { to { stroke-dashoffset: 0; } }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { width: 20px; height: 20px; border: 2.5px solid var(--sand-200); border-top-color: var(--brand-sun); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes slide-up { from { transform: translateY(100%); } to { transform: none; } }
+.sheet-enter { animation: slide-up 260ms var(--ease-out); }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.fade-in { animation: fade-in 200ms ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .card-hover:hover { transform: none; }
+  .skeleton, .sheet-enter, .fade-in { animation: none; }
+  .motion-only { animation: none !important; }
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}
+
+/* Utility: hide scrollbars on chip rows */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
