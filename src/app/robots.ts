@@ -9,7 +9,7 @@ import { company } from "@/config/business";
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
-      { userAgent: "*", allow: "/", disallow: ["/api/", "/bookings/", "/account", "/*/book", "/stays?*", "/flights?*"] },
+      { userAgent: "*", allow: "/", disallow: ["/api/", "/bookings/", "/account", "/team", "/stays/saved", "/*/book", "/stays?*", "/flights?*"] },
     ],
     sitemap: `${company.domain}/sitemap.xml`,
   };

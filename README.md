@@ -36,6 +36,14 @@ PW_CHROMIUM=/path/to/chromium npm run test:e2e   # Playwright journeys (desktop 
 - `src/app/api/` — quote, search, bookings, flights, BruPass, host enquiry routes.
 - `tests/unit`, `tests/e2e` — Vitest and Playwright.
 
+## Team console
+
+`/team` lets a BruFly team member move a request to Awaiting confirmation, Confirmed or Unavailable after checking with the airline or host. Set `TEAM_TOKEN` in the environment; the page asks for it. This is the only way a booking becomes Confirmed.
+
+## Fonts and images
+
+Fonts are self-hosted variable WOFF2 files in `src/fonts` (no Google Fonts request at build or runtime). Social share images are generated per page by the `opengraph-image.tsx` routes.
+
 ## Booking states
 
 `request_received → awaiting_confirmation → confirmed | declined`, plus `cancelled`. Nothing on the site shows "Confirmed" unless the server record is confirmed. No payment is captured anywhere in this build.

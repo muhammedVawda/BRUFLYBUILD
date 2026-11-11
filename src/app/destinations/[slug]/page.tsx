@@ -9,6 +9,7 @@ import { parseStaySearch } from "@/lib/search-params";
 import { StayCard } from "@/components/stays/StayCard";
 import { Illustration } from "@/components/Illustration";
 import { company } from "@/config/business";
+import { breadcrumbLd, itemListLd } from "@/lib/seo";
 
 export async function generateStaticParams() {
   return destinations.filter((d) => propertiesForDestination(d.slug).length > 0).map((d) => ({ slug: d.slug }));
@@ -44,6 +45,8 @@ export default async function DestinationPage({ params }: { params: Promise<{ sl
   return (
     <div className="container-x py-8 md:py-12">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd([{ name: "Stays", path: "/stays" }, { name: d.name, path: `/destinations/${d.slug}` }])) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListLd(`Stays in ${d.name}`, results.results.map((r) => ({ name: r.property.name, path: `/stays/${r.property.slug}` })))) }} />
       <nav aria-label="Breadcrumb" className="mb-4 text-sm text-ink-3"><Link href="/stays" className="hover:text-ink">Stays</Link> › <span className="text-ink-2">{d.name}</span></nav>
       <header className="grid gap-6 md:grid-cols-[1.1fr_1fr] md:items-center">
         <div>

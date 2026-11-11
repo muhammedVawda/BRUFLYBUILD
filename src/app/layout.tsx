@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Manrope } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -7,14 +7,9 @@ import { CookieNotice } from "@/components/CookieNotice";
 import { SupportWidget } from "@/components/SupportWidget";
 import { company } from "@/config/business";
 
-const display = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-display",
-  weight: "variable",
-  axes: ["opsz", "SOFT"],
-  display: "swap",
-});
-const body = Manrope({ subsets: ["latin"], variable: "--font-body", weight: ["400", "500", "600", "700", "800"], display: "swap" });
+// Self-hosted variable fonts (latin subsets): no build-time or runtime dependency on Google.
+const display = localFont({ src: "../fonts/fraunces.woff2", variable: "--font-display", weight: "100 900", display: "swap" });
+const body = localFont({ src: "../fonts/manrope.woff2", variable: "--font-body", weight: "200 800", display: "swap" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(company.domain),

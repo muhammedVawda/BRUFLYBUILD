@@ -3,6 +3,7 @@ import { Illustration } from "@/components/Illustration";
 import { formatZar } from "@/lib/money";
 import { AMENITIES, PROPERTY_TYPES } from "@/lib/search-params";
 import type { StayResult } from "@/lib/search";
+import { SaveButton } from "@/components/stays/SaveButton";
 
 const cancellationLabel = { flexible: "Free cancellation (24 h)", moderate: "Free cancellation (7 days)", strict: "Free cancellation (30 days)" } as const;
 const modeLabel = { instant: "Instant booking", request: "Request to book", enquiry: "Enquiry only" } as const;
@@ -13,7 +14,8 @@ export function StayCard({ r, href, nights, priority = false }: { r: StayResult;
   const amenities = p.amenities.slice(0, 4).map((a) => AMENITIES.find((x) => x.id === a)?.label ?? a);
   const hasPhoto = p.photos.length > 0;
   return (
-    <article className="card card-hover overflow-hidden">
+    <article className="card card-hover relative overflow-hidden">
+      <SaveButton slug={p.slug} name={p.name} className="absolute right-3 top-3 z-10" />
       <Link href={href} className="block focus-visible:outline-none group" aria-label={`${p.name}: view stay`}>
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-sand-100">
           {hasPhoto ? (
@@ -34,7 +36,7 @@ export function StayCard({ r, href, nights, priority = false }: { r: StayResult;
             </>
           )}
           {r.unavailableReason && (
-            <span className="absolute right-3 top-3 badge badge-warn bg-white/90">Not available for these dates</span>
+            <span className="absolute bottom-3 left-3 badge badge-warn bg-white/90">Not available for these dates</span>
           )}
         </div>
         <div className="p-4">

@@ -183,3 +183,30 @@ test("keyboard: header menu / filter sheet restore focus, reduced motion respect
     await expect(menu).toBeFocused();
   }
 });
+
+test("favourites persist in the browser and the saved page lists them", async ({ page }) => {
+  await page.goto("/stays?destination=Durban&adults=2");
+  await page.getByRole("button", { name: /Save Umhlanga Beachfront Hotel/ }).click();
+  await expect(page.getByRole("button", { name: /Remove Umhlanga Beachfront Hotel/ })).toBeVisible();
+  await page.goto("/stays/saved");
+  await expect(page.getByRole("heading", { level: 3, name: "Umhlanga Beachfront Hotel" })).toBeVisible();
+});
+
+test("homepage hero offers stays search alongside flights", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("tab", { name: "Stays" }).click();
+  await page.getByRole("combobox", { name: "Where to?" }).fill("Knysna");
+  await page.getByRole("option", { name: /Garden Route/ }).click();
+  await page.getByRole("button", { name: "Search stays" }).click();
+  await expect(page).toHaveURL(/\/stays\?destination=Garden\+Route/);
+  await expect(page.getByRole("heading", { level: 2, name: /stays in Garden Route/ })).toBeVisible();
+});
+
+test("social share image and structured data are served", async ({ request }) => {
+  const og = await request.get("/stays/seapoint-promenade-apartment/opengraph-image");
+  expect(og.status()).toBe(200);
+  expect(og.headers()["content-type"]).toContain("image/png");
+  const html = await (await request.get("/stays/seapoint-promenade-apartment")).text();
+  expect(html).toContain('"@type":"BreadcrumbList"');
+  expect(html).toContain('property="og:image"');
+});

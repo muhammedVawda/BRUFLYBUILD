@@ -8,6 +8,7 @@ import { properties } from "@/lib/data/properties";
 import { destinations } from "@/lib/data/destinations";
 import { FAQ, faqJsonLd } from "@/components/FAQ";
 import type { Amenity, PropertyType } from "@/lib/types";
+import { breadcrumbLd, itemListLd } from "@/lib/seo";
 
 type SP = Record<string, string | string[] | undefined>;
 
@@ -57,6 +58,8 @@ export default async function StaysPage({ searchParams }: { searchParams: Promis
   return (
     <div className="container-x py-8 md:py-12">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(faqs)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd([{ name: "Home", path: "/" }, { name: "Stays", path: "/stays" }])) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListLd("Destinations on BruFly Stays", destinations.map((d) => ({ name: d.name, path: `/destinations/${d.slug}` })))) }} />
       <header className="max-w-3xl">
         <p className="eyebrow">BruFly Stays</p>
         <h1 className="mt-2 text-3xl md:text-5xl text-ocean">Find a place to stay, anywhere in South Africa</h1>

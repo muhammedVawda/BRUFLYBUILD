@@ -13,6 +13,10 @@ import { Illustration } from "@/components/Illustration";
 import { formatLong } from "@/lib/dates";
 import { company } from "@/config/business";
 import { PropertyViewTracker } from "@/components/stays/PropertyViewTracker";
+import { SaveButton } from "@/components/stays/SaveButton";
+import { ShareButton } from "@/components/ShareButton";
+import { AmenityIcon } from "@/components/AmenityIcon";
+import { breadcrumbLd } from "@/lib/seo";
 
 type SP = Record<string, string | string[] | undefined>;
 
@@ -86,6 +90,7 @@ export default async function PropertyPage({ params, searchParams }: { params: P
   return (
     <div className="container-x py-6 md:py-10 pb-28 md:pb-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd([{ name: "Stays", path: "/stays" }, { name: d.name, path: `/destinations/${d.slug}` }, { name: p.name, path: `/stays/${p.slug}` }])) }} />
       <PropertyViewTracker slug={p.slug} />
       <nav aria-label="Breadcrumb" className="mb-4 text-sm text-ink-3">
         <ol className="flex flex-wrap gap-1">
@@ -95,8 +100,16 @@ export default async function PropertyPage({ params, searchParams }: { params: P
         </ol>
       </nav>
       <header className="mb-5">
-        <p className="text-sm font-semibold uppercase tracking-wide text-ink-3">{type} · {p.area}, {d.name}</p>
-        <h1 className="mt-1 text-3xl md:text-4xl text-ocean">{p.name}</h1>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wide text-ink-3">{type} · {p.area}, {d.name}</p>
+            <h1 className="mt-1 text-3xl md:text-4xl text-ocean">{p.name}</h1>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <ShareButton title={p.name} />
+            <SaveButton slug={p.slug} name={p.name} className="border border-line" />
+          </div>
+        </div>
         <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-ink-2">
           <span>Sleeps {p.maxGuests}{p.roomBased ? " per room" : ""}</span>
           <span>{p.bedrooms} {p.bedrooms === 1 ? "bedroom" : "bedrooms"}</span>
@@ -126,16 +139,16 @@ export default async function PropertyPage({ params, searchParams }: { params: P
             <h2 id="amen-h" className="text-2xl text-ocean">What's included</h2>
             <div className="mt-4 grid gap-6 sm:grid-cols-2">
               {amenityGroups.map((g) => {
-                const items = g.ids.filter((id) => p.amenities.includes(id as never)).map((id) => AMENITIES.find((a) => a.id === id)?.label ?? id);
+                const items = g.ids.filter((id) => p.amenities.includes(id as never));
                 if (!items.length) return null;
                 return (
                   <div key={g.title}>
                     <h3 className="font-sans text-sm font-bold uppercase tracking-wide text-ink-3">{g.title}</h3>
-                    <ul className="mt-2 space-y-1.5">
-                      {items.map((it) => (
-                        <li key={it} className="flex items-center gap-2 text-ink">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--good)" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><path d="m5 12 5 5L20 7" /></svg>
-                          {it}
+                    <ul className="mt-2 space-y-2">
+                      {items.map((id) => (
+                        <li key={id} className="flex items-center gap-2.5 text-ink">
+                          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-ocean-100 text-ocean"><AmenityIcon id={id} /></span>
+                          {AMENITIES.find((a) => a.id === id)?.label ?? id}
                         </li>
                       ))}
                     </ul>

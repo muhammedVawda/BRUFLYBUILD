@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { FlightSearchForm } from "@/components/flights/FlightSearchForm";
+import { HeroSearch } from "@/components/HeroSearch";
 import { RouteAnimation } from "@/components/RouteAnimation";
 import { Illustration } from "@/components/Illustration";
 import { Reveal } from "@/components/Reveal";
@@ -9,6 +9,7 @@ import { destinations } from "@/lib/data/destinations";
 import { propertiesForDestination } from "@/lib/data/properties";
 import { airports, findRoute, popularRoutes } from "@/lib/data/airports";
 import { company, flightBooking, brupass } from "@/config/business";
+import { websiteLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "BruFly | Cheap flights and stays across South Africa, checked by real people",
@@ -38,6 +39,7 @@ export default function HomePage() {
     <div>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(faqs)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd()) }} />
 
       {/* Hero */}
       <section className="relative overflow-hidden" aria-labelledby="hero-h">
@@ -51,11 +53,9 @@ export default function HomePage() {
             <p className="mt-4 max-w-xl text-lg text-ink-2">
               Request {flightBooking.airlines.join(" and ")} flights and book stays across South Africa. Clear prices, no call centre, and a real person checks every booking before it's confirmed.
             </p>
-            <div className="card mt-8 p-4 md:p-6">
-              <FlightSearchForm initial={{}} />
-            </div>
+            <div className="mt-8"><HeroSearch /></div>
             <p className="mt-4 text-sm text-ink-2">
-              Just need a place to stay? <Link href="/stays" className="link font-semibold">Search stays</Link>. No flight required.
+              Every request is checked by a person before it is confirmed. Nothing is charged until you approve the final price.
             </p>
           </div>
           <div className="mx-auto w-full max-w-md md:max-w-none">

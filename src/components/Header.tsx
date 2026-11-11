@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Logo } from "@/components/Logo";
+import { SavedLink } from "@/components/stays/SavedLink";
 
 const nav = [
   { href: "/flights", label: "Flights" },
@@ -111,6 +112,7 @@ export function Header() {
           </ul>
         </nav>
         <div className="flex items-center gap-2">
+          <SavedLink className="hidden sm:inline-flex" />
           <Link href="/account" className="btn btn-outline btn-sm hidden sm:inline-flex">
             My bookings
           </Link>
