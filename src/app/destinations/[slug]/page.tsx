@@ -48,17 +48,20 @@ export default async function DestinationPage({ params }: { params: Promise<{ sl
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd([{ name: "Stays", path: "/stays" }, { name: d.name, path: `/destinations/${d.slug}` }])) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListLd(`Stays in ${d.name}`, results.results.map((r) => ({ name: r.property.name, path: `/stays/${r.property.slug}` })))) }} />
       <nav aria-label="Breadcrumb" className="mb-4 text-sm text-ink-3"><Link href="/stays" className="hover:text-ink">Stays</Link> › <span className="text-ink-2">{d.name}</span></nav>
-      <header className="grid gap-6 md:grid-cols-[1.1fr_1fr] md:items-center">
-        <div>
-          <p className="eyebrow">{d.province}</p>
-          <h1 className="mt-2 text-3xl md:text-5xl text-ocean">Stays in {d.name}</h1>
-          <p className="mt-3 text-lg text-ink-2">{d.intro}</p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link href={`/stays?destination=${encodeURIComponent(d.name)}&adults=2`} className="btn btn-primary">Search stays with dates</Link>
-            {airport && <Link href={`/flights?to=${airport.code}`} className="btn btn-outline">Flights to {airport.city}</Link>}
+      <header className="relative -mx-4 overflow-hidden rounded-none sm:-mx-6 sm:rounded-[var(--radius-lg)] lg:-mx-8">
+        <div className="relative aspect-[16/10] min-h-[360px] w-full sm:aspect-[21/9]">
+          <Illustration scene={d.scene} seed={d.slug} className="absolute inset-0 h-full w-full" label={`Illustration of ${d.name}`} />
+          <div className="absolute inset-0 bg-gradient-to-t from-ocean/85 via-ocean/20 to-transparent" aria-hidden="true" />
+          <div className="absolute inset-x-0 bottom-0 p-6 text-white sm:p-10">
+            <p className="eyebrow !text-[#ffd2b3]">{d.province}</p>
+            <h1 className="mt-2 text-4xl md:text-6xl">Stays in {d.name}</h1>
+            <p className="mt-3 max-w-2xl text-lg text-white/90">{d.intro}</p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link href={`/stays?destination=${encodeURIComponent(d.name)}&adults=2`} className="btn btn-primary">Search stays with dates</Link>
+              {airport && <Link href={`/flights?to=${airport.code}`} className="btn border border-white/50 text-white hover:bg-white/10">Flights to {airport.city}</Link>}
+            </div>
           </div>
         </div>
-        <div className="overflow-hidden rounded-3xl"><div className="aspect-[4/3]"><Illustration scene={d.scene} seed={d.slug} className="h-full w-full" label={`Illustration of ${d.name}`} /></div></div>
       </header>
       <section className="prose-bru mt-12 max-w-3xl" aria-label={`About ${d.name}`}>
         {d.body.map((p) => <p key={p.slice(0, 24)}>{p}</p>)}

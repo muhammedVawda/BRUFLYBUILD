@@ -17,7 +17,7 @@ export function StayCard({ r, href, nights, priority = false }: { r: StayResult;
     <article className="card card-hover relative overflow-hidden">
       <SaveButton slug={p.slug} name={p.name} className="absolute right-3 top-3 z-10" />
       <Link href={href} className="block focus-visible:outline-none group" aria-label={`${p.name}: view stay`}>
-        <div className="relative aspect-[4/3] w-full overflow-hidden bg-sand-100">
+        <div className="relative aspect-[3/2] w-full overflow-hidden bg-sand-100">
           {hasPhoto ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -31,12 +31,18 @@ export function StayCard({ r, href, nights, priority = false }: { r: StayResult;
             />
           ) : (
             <>
-              <Illustration scene={p.scene} seed={p.slug} className="h-full w-full transition-transform duration-500 group-hover:scale-[1.03]" />
-              <span className="absolute left-3 top-3 badge badge-neutral bg-white/85 backdrop-blur">Photos coming soon</span>
+              <Illustration scene={p.scene} seed={p.slug} className="h-full w-full transition-transform duration-700 ease-out group-hover:scale-[1.04]" />
+              <span className="absolute bottom-3 right-3 rounded-md bg-ocean/55 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white/90 backdrop-blur-sm">Illustration</span>
             </>
           )}
           {r.unavailableReason && (
             <span className="absolute bottom-3 left-3 badge badge-warn bg-white/90">Not available for these dates</span>
+          )}
+          {r.rating && (
+            <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/92 px-2.5 py-1 text-sm font-bold text-ocean shadow-sm backdrop-blur" aria-label={`Rated ${r.rating.average} out of 5 from ${r.rating.count} reviews`}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--brand-sun)" aria-hidden="true"><path d="m12 2 3 6.6 7 .8-5.2 4.8 1.4 7L12 17.8 5.8 21.2l1.4-7L2 9.4l7-.8z" /></svg>
+              {r.rating.average.toFixed(1)}<span className="font-medium text-ink-3">({r.rating.count})</span>
+            </span>
           )}
         </div>
         <div className="p-4">
@@ -45,16 +51,9 @@ export function StayCard({ r, href, nights, priority = false }: { r: StayResult;
               <p className="text-xs font-semibold uppercase tracking-wide text-ink-3">
                 {type} · {p.area}
               </p>
-              <h3 className="display mt-0.5 truncate text-lg font-semibold text-ocean">{p.name}</h3>
+              <h3 className="display mt-0.5 truncate text-[1.15rem] font-semibold leading-snug text-ocean">{p.name}</h3>
             </div>
-            {r.rating ? (
-              <p className="shrink-0 rounded-lg bg-ocean-100 px-2 py-1 text-sm font-bold text-ocean" aria-label={`Rated ${r.rating.average} out of 5 from ${r.rating.count} reviews`}>
-                {r.rating.average.toFixed(1)}
-                <span className="ml-1 font-medium text-ink-3">({r.rating.count})</span>
-              </p>
-            ) : (
-              <p className="shrink-0 text-xs text-ink-3">No reviews yet</p>
-            )}
+            {!r.rating && <p className="shrink-0 pt-1 text-xs text-ink-3">No reviews yet</p>}
           </div>
           <p className="mt-1 text-sm text-ink-2">
             Sleeps {p.maxGuests}{p.roomBased ? " per room" : ""} · {p.bedrooms} {p.bedrooms === 1 ? "bedroom" : "bedrooms"} · {p.bathrooms} {p.bathrooms === 1 ? "bathroom" : "bathrooms"}

@@ -22,6 +22,8 @@ const nav = [
 export function Header() {
   const pathname = usePathname();
   const [elevated, setElevated] = useState(false);
+  // On the homepage the header sits over the poster hero until the page scrolls.
+  const overHero = pathname === "/" && !elevated;
   const [open, setOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -78,18 +80,20 @@ export function Header() {
   return (
     <header
       className="fixed inset-x-0 top-0 z-50 border-b transition-shadow duration-300"
+      data-over-hero={overHero || undefined}
       style={{
         height: "var(--header-h)",
-        background: "rgba(250, 247, 242, 0.92)",
-        backdropFilter: "saturate(160%) blur(10px)",
-        WebkitBackdropFilter: "saturate(160%) blur(10px)",
+        background: overHero ? "linear-gradient(to bottom, rgba(11,42,74,0.55), rgba(11,42,74,0))" : "rgba(250, 247, 242, 0.92)",
+        backdropFilter: overHero ? "none" : "saturate(160%) blur(10px)",
+        WebkitBackdropFilter: overHero ? "none" : "saturate(160%) blur(10px)",
         borderColor: elevated ? "var(--line)" : "transparent",
         boxShadow: elevated ? "var(--shadow-sm)" : "none",
+        transition: "background 300ms ease, box-shadow 300ms ease",
       }}
     >
       <div className="container-x flex h-full items-center justify-between gap-4">
         <Link href="/" className="shrink-0 rounded-lg" aria-label="BruFly home">
-          <Logo />
+          <Logo light={overHero} />
         </Link>
         <nav aria-label="Primary" className="hidden md:block">
           <ul className="flex items-center gap-1">
@@ -101,7 +105,7 @@ export function Header() {
                     href={n.href}
                     aria-current={active ? "page" : undefined}
                     className={`rounded-full px-4 py-2 text-[0.95rem] font-semibold transition-colors ${
-                      active ? "bg-ocean-100 text-ocean" : "text-ink-2 hover:bg-sand-100 hover:text-ink"
+                      overHero ? (active ? "bg-white/15 text-white" : "text-white/85 hover:bg-white/10 hover:text-white") : active ? "bg-ocean-100 text-ocean" : "text-ink-2 hover:bg-sand-100 hover:text-ink"
                     }`}
                   >
                     {n.label}
@@ -113,13 +117,13 @@ export function Header() {
         </nav>
         <div className="flex items-center gap-2">
           <SavedLink className="hidden sm:inline-flex" />
-          <Link href="/account" className="btn btn-outline btn-sm hidden sm:inline-flex">
+          <Link href="/account" className={`btn btn-sm hidden sm:inline-flex ${overHero ? "border border-white/40 text-white hover:bg-white/10" : "btn-outline"}`}>
             My bookings
           </Link>
           <button
             ref={toggleRef}
             type="button"
-            className="btn btn-outline btn-sm md:hidden"
+            className={`btn btn-sm md:hidden ${overHero && !open ? "border border-white/40 text-white" : "btn-outline"}`}
             aria-expanded={open}
             aria-controls="mobile-menu"
             onClick={() => setOpen((v) => !v)}

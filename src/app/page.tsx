@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { HeroSearch } from "@/components/HeroSearch";
 import { RouteAnimation } from "@/components/RouteAnimation";
+import { HeroScene } from "@/components/HeroScene";
 import { Illustration } from "@/components/Illustration";
 import { Reveal } from "@/components/Reveal";
 import { FAQ, faqJsonLd } from "@/components/FAQ";
@@ -41,26 +42,22 @@ export default function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(faqs)) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd()) }} />
 
-      {/* Hero */}
-      <section className="relative overflow-hidden" aria-labelledby="hero-h">
-        <div className="absolute inset-0 -z-10" style={{ background: "radial-gradient(900px 500px at 15% 0%, #fdebdd 0%, transparent 60%), radial-gradient(700px 500px at 100% 100%, #e4f1fb 0%, transparent 60%)" }} aria-hidden="true" />
-        <div className="container-x grid gap-10 py-10 md:grid-cols-[1.1fr_1fr] md:items-center md:py-16">
-          <div>
-            <p className="eyebrow">Flights · Stays · BruPass</p>
-            <h1 id="hero-h" className="mt-3 text-4xl leading-[1.05] md:text-6xl text-ocean">
-              Fly cheaper. Stay better. <span className="text-sun">Sorted by a person.</span>
+      {/* Hero: layered poster scene with parallax; search card floats on top */}
+      <section className="relative -mt-[var(--header-h)] overflow-hidden" aria-labelledby="hero-h">
+        <div className="absolute inset-0 -z-10 bg-ocean"><HeroScene /></div>
+        <div className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-gradient-to-t from-sand-50 to-transparent" aria-hidden="true" />
+        <div className="container-x pt-[calc(var(--header-h)+2.5rem)] pb-16 md:pt-[calc(var(--header-h)+5rem)] md:pb-24">
+          <div className="max-w-2xl">
+            <p className="eyebrow !text-[#ffd2b3]">Flights · Stays · BruPass</p>
+            <h1 id="hero-h" className="mt-3 text-4xl leading-[1.02] text-white drop-shadow-[0_2px_12px_rgba(11,42,74,0.45)] md:text-6xl lg:text-7xl">
+              Fly cheaper. Stay better. <span className="text-[#ffd2b3]">Sorted by a person.</span>
             </h1>
-            <p className="mt-4 max-w-xl text-lg text-ink-2">
-              Request {flightBooking.airlines.join(" and ")} flights and book stays across South Africa. Clear prices, no call centre, and a real person checks every booking before it's confirmed.
-            </p>
-            <div className="mt-8"><HeroSearch /></div>
-            <p className="mt-4 text-sm text-ink-2">
-              Every request is checked by a person before it is confirmed. Nothing is charged until you approve the final price.
+            <p className="mt-4 max-w-xl text-lg text-white/90 drop-shadow-[0_1px_6px_rgba(11,42,74,0.5)]">
+              {flightBooking.airlines.join(" and ")} flights and stays across South Africa. Clear prices, no call centre, and a real person checks every booking before it's confirmed.
             </p>
           </div>
-          <div className="mx-auto w-full max-w-md md:max-w-none">
-            <RouteAnimation className="h-auto w-full" />
-          </div>
+          <div className="mt-8 max-w-4xl shadow-[var(--shadow-lg)] rounded-[var(--radius)]"><HeroSearch /></div>
+          <p className="mt-4 text-sm text-white/85 drop-shadow-[0_1px_4px_rgba(11,42,74,0.6)]">Nothing is charged until you approve the final price.</p>
         </div>
       </section>
 
@@ -92,7 +89,8 @@ export default function HomePage() {
           </div>
           <Link href="/flights" className="btn btn-ghost btn-sm">All routes</Link>
         </div>
-        <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_380px] lg:items-center">
+        <ul className="grid gap-4 sm:grid-cols-2">
           {popularRoutes.map(([a, b]) => {
             const r = findRoute(a, b)!;
             const A = airports.find((x) => x.code === a)!;
@@ -108,6 +106,8 @@ export default function HomePage() {
             );
           })}
         </ul>
+        <div className="mx-auto w-full max-w-sm lg:max-w-none"><RouteAnimation className="h-auto w-full" /></div>
+        </div>
         <p className="mt-3 text-xs text-ink-3">Sample fares are for planning; the exact fare is confirmed with the airline before you pay.</p>
       </Reveal>
 
@@ -128,8 +128,8 @@ export default function HomePage() {
                 <Link href={`/destinations/${d.slug}`} className="card card-hover group block overflow-hidden h-full">
                   <div className={`relative ${i === 0 ? "aspect-[4/3] lg:aspect-auto lg:h-full lg:min-h-[420px]" : "aspect-[16/9]"}`}>
                     <Illustration scene={d.scene} seed={d.slug} className="absolute inset-0 h-full w-full transition-transform duration-700 group-hover:scale-[1.04]" />
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ocean/80 to-transparent p-4 pt-12 text-white">
-                      <p className="display text-xl font-semibold">{d.name}</p>
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ocean/85 via-ocean/30 to-transparent p-5 pt-16 text-white">
+                      <p className="display text-2xl font-semibold">{d.name}</p>
                       <p className="text-sm text-white/85">{n} {n === 1 ? "stay" : "stays"} · {d.province}</p>
                     </div>
                   </div>

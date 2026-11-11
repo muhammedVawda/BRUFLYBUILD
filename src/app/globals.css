@@ -26,8 +26,8 @@
   --warn-100: #fbf1dd;
   --bad: #c43d3d;
   --bad-100: #fbe5e5;
-  --radius: 14px;
-  --radius-lg: 22px;
+  --radius: 16px;
+  --radius-lg: 28px;
   --shadow-sm: 0 1px 2px rgba(22, 33, 58, 0.06), 0 1px 1px rgba(22, 33, 58, 0.04);
   --shadow-md: 0 8px 24px -12px rgba(22, 33, 58, 0.25), 0 2px 6px -2px rgba(22, 33, 58, 0.08);
   --shadow-lg: 0 24px 48px -20px rgba(11, 42, 74, 0.35);
@@ -77,8 +77,8 @@ body {
 body[data-scroll-lock="true"] { overflow: hidden; }
 
 h1, h2, h3, .display { font-family: var(--font-display); letter-spacing: -0.01em; }
-h1 { font-weight: 600; }
-h2 { font-weight: 600; }
+h1 { font-weight: 600; font-variation-settings: "opsz" 144, "SOFT" 30; }
+h2 { font-weight: 600; font-variation-settings: "opsz" 72, "SOFT" 20; }
 
 /* Focus */
 :focus-visible { outline: 3px solid var(--brand-sky); outline-offset: 2px; border-radius: 6px; }
@@ -105,7 +105,7 @@ h2 { font-weight: 600; }
 
   .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); }
   .card-hover { transition: transform 220ms var(--ease-out), box-shadow 220ms var(--ease-out); }
-  .card-hover:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .card-hover:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: transparent; }
 
   .field { @apply block w-full rounded-xl border bg-white text-ink placeholder:text-ink-3; border-color: var(--line); min-height: 48px; padding: 0 0.9rem; font-size: 1rem; }
   .field:focus { border-color: var(--brand-sky); box-shadow: 0 0 0 3px var(--brand-sky-100); outline: none; }
@@ -150,7 +150,7 @@ h2 { font-weight: 600; }
   .reveal { opacity: 1; transform: none; transition: none; }
   .card-hover:hover { transform: none; }
   .skeleton, .sheet-enter, .fade-in { animation: none; }
-  .motion-only { animation: none !important; }
+  .motion-only { animation: none !important; stroke-dashoffset: 0 !important; offset-distance: 100% !important; }
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
 }
 

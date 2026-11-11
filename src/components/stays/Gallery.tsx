@@ -42,8 +42,8 @@ export function Gallery({ name, slug, photos, scene }: Props) {
         <div className="aspect-[16/9] w-full md:aspect-[21/9]">
           <Illustration scene={scene} seed={slug} className="h-full w-full" label={`Illustration placeholder for ${name}`} />
         </div>
-        <p className="absolute bottom-3 left-3 rounded-lg bg-white/90 px-3 py-1.5 text-sm font-medium text-ink-2 backdrop-blur">
-          Photos of this property are being added. This is an illustration, not the property.
+        <p className="absolute bottom-3 left-3 rounded-lg bg-ocean/60 px-3 py-1.5 text-sm font-medium text-white backdrop-blur-sm">
+          Illustration of the area. Photos of this property are being added.
         </p>
       </div>
     );

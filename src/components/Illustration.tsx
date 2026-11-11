@@ -1,219 +1,313 @@
 import type { Scene } from "@/lib/types";
 
 /**
- * Honest illustration placeholders, used only until real photography is
- * supplied. Each scene has its own composition and the seed picks a time of
- * day and small variations, so a grid of cards reads as a set of distinct
- * places rather than one repeated graphic. Palette stays within the brand:
- * Atlantic blues, Highveld ochres, winelands greens.
+ * BruFly "travel poster" illustration system.
+ *
+ * Used for destinations and, until real photographs are supplied, for
+ * listings. It is deliberately an art style rather than a stand-in for a
+ * photo: layered ridges with atmospheric perspective, a time-of-day sky,
+ * soft clouds, film grain and a gentle vignette, plus a landmark that
+ * identifies each scene (Table Mountain, the Umhlanga coast, the Joburg
+ * skyline, acacia bushveld, winelands gables, the Knysna lagoon).
+ *
+ * `layers()` returns the same scene split by depth for the parallax hero.
  */
 type Time = "dawn" | "day" | "dusk";
-const skies: Record<Time, [string, string]> = {
-  dawn: ["#f6d7c3", "#fbe9d4"],
-  day: ["#bfe0f4", "#eef6fb"],
-  dusk: ["#f3b98a", "#f9dcc0"],
+
+const skyStops: Record<Time, [string, string, string]> = {
+  dawn: ["#d9c3dc", "#f4c8b4", "#fbe6cf"],
+  day: ["#7fb6e3", "#bddcf3", "#eaf3fa"],
+  dusk: ["#5a4b86", "#e8865e", "#f8c79a"],
 };
-const sun: Record<Time, string> = { dawn: "#ffb77a", day: "#ffd98a", dusk: "#ff9a4d" };
+const sunColour: Record<Time, string> = { dawn: "#ffc08a", day: "#fff1c0", dusk: "#ff9a4d" };
+
+interface Palette { far: string; mid: string; near: string; ground: string; water?: string }
+const palettes: Record<Scene, Palette> = {
+  coast: { far: "#8ea8c4", mid: "#5f7f9f", near: "#3f5f7f", ground: "#e9d7b1", water: "#2b7fc0" },
+  mountain: { far: "#9db0c8", mid: "#5d7595", near: "#324b6c", ground: "#5f8a5f" },
+  city: { far: "#aeb9cc", mid: "#5d6f8d", near: "#2b3c57", ground: "#6a8b5e" },
+  bush: { far: "#d2a77a", mid: "#a9744a", near: "#6b4428", ground: "#d8b06e" },
+  winelands: { far: "#a3b3c2", mid: "#6f8aa0", near: "#3f6b4e", ground: "#7fa65b" },
+  garden: { far: "#8fb0bd", mid: "#5a8a8a", near: "#2f6b57", ground: "#4f8a4a", water: "#5fb0c9" },
+};
 
 function hash(s: string): number {
   let h = 2166136261;
   for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
   return Math.abs(h) >>> 0;
 }
+const rnd = (h: number, k: number, span: number) => ((h >> (k % 28)) % span);
 
-export function Illustration({ scene, seed = "", className = "", label }: { scene: Scene; seed?: string; className?: string; label?: string }) {
+/** Smooth ridge from x=0..W at baseline y with amplitude a. */
+function ridge(h: number, k: number, y: number, a: number, W = 400, H = 240, segs = 7): string {
+  const pts: [number, number][] = [];
+  for (let i = 0; i <= segs; i++) {
+    const x = (W / segs) * i;
+    const yy = y - rnd(h, k + i * 3, 1000) / 1000 * a;
+    pts.push([x, yy]);
+  }
+  let d = `M-10 ${H + 10} L-10 ${pts[0][1]}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [x0, y0] = pts[i];
+    const [x1, y1] = pts[i + 1];
+    const cx = (x0 + x1) / 2;
+    d += ` Q${x0 + (x1 - x0) * 0.25} ${y0} ${cx} ${(y0 + y1) / 2} T${x1} ${y1}`;
+  }
+  d += ` L${W + 10} ${H + 10} Z`;
+  return d;
+}
+
+interface Ctx { h: number; id: string; time: Time; p: Palette }
+
+export function sceneLayers(scene: Scene, seed = "", fixedTime?: Time): { ctx: Ctx; sky: React.ReactNode; far: React.ReactNode; mid: React.ReactNode; near: React.ReactNode; fore: React.ReactNode; overlay: React.ReactNode } {
   const h = hash(seed || scene);
-  const time: Time = (["dawn", "day", "dusk"] as Time[])[h % 3];
-  const [skyTop, skyBottom] = skies[time];
-  const sunX = 30 + (h % 140);
-  const sunY = 22 + ((h >> 3) % 22);
-  const id = `g${h % 1000000}`;
-  const v = (bits: number, span: number) => ((h >> bits) % span);
+  const time: Time = fixedTime ?? (["dawn", "day", "dusk"] as Time[])[h % 3];
+  const id = `il${h % 1000000}`;
+  const p = palettes[scene];
+  const ctx: Ctx = { h, id, time, p };
+  const [s0, s1, s2] = skyStops[time];
+  const sunX = 60 + rnd(h, 1, 280);
+  const sunY = 40 + rnd(h, 4, 50);
 
-  return (
-    <svg viewBox="0 0 200 120" preserveAspectRatio="xMidYMid slice" className={className} role={label ? "img" : "presentation"} aria-label={label} aria-hidden={label ? undefined : true}>
+  const sky = (
+    <g>
       <defs>
         <linearGradient id={`${id}-sky`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor={skyTop} />
-          <stop offset="1" stopColor={skyBottom} />
-        </linearGradient>
-        <linearGradient id={`${id}-sea`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#4aa3dc" />
-          <stop offset="1" stopColor="#1f6fb0" />
+          <stop offset="0" stopColor={s0} />
+          <stop offset="0.55" stopColor={s1} />
+          <stop offset="1" stopColor={s2} />
         </linearGradient>
         <radialGradient id={`${id}-glow`}>
-          <stop offset="0" stopColor={sun[time]} stopOpacity="0.55" />
-          <stop offset="1" stopColor={sun[time]} stopOpacity="0" />
+          <stop offset="0" stopColor={sunColour[time]} stopOpacity="0.9" />
+          <stop offset="0.35" stopColor={sunColour[time]} stopOpacity="0.35" />
+          <stop offset="1" stopColor={sunColour[time]} stopOpacity="0" />
         </radialGradient>
+        <radialGradient id={`${id}-vig`} cx="0.5" cy="0.5" r="0.75">
+          <stop offset="0.6" stopColor="#000" stopOpacity="0" />
+          <stop offset="1" stopColor="#0b2a4a" stopOpacity="0.28" />
+        </radialGradient>
+        <filter id={`${id}-grain`} x="0" y="0" width="100%" height="100%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" />
+          <feColorMatrix type="saturate" values="0" />
+          <feComponentTransfer><feFuncA type="linear" slope="0.09" /></feComponentTransfer>
+        </filter>
+        <filter id={`${id}-soft`} x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="2.2" /></filter>
+        {p.water && (
+          <linearGradient id={`${id}-water`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor={p.water} stopOpacity="0.85" />
+            <stop offset="1" stopColor="#1d5f93" />
+          </linearGradient>
+        )}
       </defs>
-      <rect width="200" height="120" fill={`url(#${id}-sky)`} />
-      <circle cx={sunX} cy={sunY} r="30" fill={`url(#${id}-glow)`} />
-      <circle cx={sunX} cy={sunY} r="9" fill={sun[time]} />
-      {/* soft clouds */}
-      {[0, 1, 2].map((i) => {
-        const cx = (v(4 + i, 180) + i * 40) % 200;
-        const cy = 18 + v(7 + i, 24);
-        return <ellipse key={i} cx={cx} cy={cy} rx={14 + v(9 + i, 10)} ry="4" fill="#fff" opacity="0.55" />;
-      })}
-      {scene === "coast" && <Coast h={h} id={id} />}
-      {scene === "mountain" && <Mountain h={h} />}
-      {scene === "city" && <City h={h} time={time} />}
-      {scene === "bush" && <Bush h={h} />}
-      {scene === "winelands" && <Winelands h={h} />}
-      {scene === "garden" && <Garden h={h} />}
-    </svg>
-  );
-}
-
-function Coast({ h, id }: { h: number; id: string }) {
-  const headland = `M0 ${78 + (h % 8)} L28 ${66 + ((h >> 2) % 8)} L60 ${74} L90 ${70 + ((h >> 5) % 6)} L120 82 L200 ${84 + ((h >> 7) % 6)} L200 90 L0 90 Z`;
-  return (
-    <>
-      <path d={headland} fill="#7f98b4" opacity="0.7" />
-      <rect x="0" y="86" width="200" height="34" fill={`url(#${id}-sea)`} />
-      {[0, 1, 2].map((i) => (
-        <path key={i} d={`M-10 ${92 + i * 6} Q15 ${89 + i * 6} 40 ${92 + i * 6} T90 ${92 + i * 6} T140 ${92 + i * 6} T190 ${92 + i * 6} T240 ${92 + i * 6}`} fill="none" stroke="#fff" strokeWidth="1.2" opacity={0.35 - i * 0.08} />
-      ))}
-      <path d="M0 112 Q40 104 90 110 T200 108 V120 H0 Z" fill="#f1dfb9" />
-      <path d="M0 113 Q40 106 90 112 T200 110 V114 Q150 112 90 114 T0 116 Z" fill="#fff" opacity="0.45" />
-      {/* palm */}
-      <g transform={`translate(${150 + (h % 30)},108)`} fill="#2f5d3a">
-        <path d="M0 0 q-1 -14 2 -24" stroke="#5a4028" strokeWidth="2" fill="none" />
-        {[-150, -120, -80, -40, -10].map((a) => (
-          <path key={a} d="M0 0 q10 -4 18 2 q-8 2 -18 -2z" transform={`translate(2,-24) rotate(${a})`} />
-        ))}
-      </g>
-      {/* umbrella */}
-      <g transform={`translate(${30 + (h % 40)},112)`}>
-        <path d="M0 0 v-8" stroke="#5a4028" strokeWidth="1.2" />
-        <path d="M-7 -8 q7 -6 14 0 z" fill="var(--brand-sun)" />
-      </g>
-    </>
-  );
-}
-
-function Mountain({ h }: { h: number }) {
-  // Table Mountain silhouette with flat top, Lion's Head to the side.
-  const flatL = 70 + (h % 10);
-  const flatR = flatL + 50;
-  return (
-    <>
-      <path d={`M0 96 L30 80 L50 86 L${flatL} 56 L${flatR} 56 L${flatR + 24} 78 L${flatR + 44} 70 L200 92 L200 120 L0 120 Z`} fill="#4b6a8f" />
-      <path d={`M${flatL} 56 L${flatR} 56 L${flatR + 24} 78 L${flatL - 20} 86 Z`} fill="#3a5676" opacity="0.6" />
-      <path d="M0 102 Q40 92 80 100 T160 98 T200 104 V120 H0 Z" fill="#6f9a6b" />
-      {/* tablecloth cloud */}
-      <path d={`M${flatL - 6} 60 q25 -10 ${flatR - flatL + 12} 0 q-8 6 -20 4 q-14 -2 -30 2 q-8 2 -12 -6z`} fill="#fff" opacity="0.8" />
-      {/* city dots */}
-      {Array.from({ length: 14 }).map((_, i) => (
-        <rect key={i} x={10 + i * 13 + ((h >> i) % 5)} y={104 + ((h >> (i + 2)) % 6)} width="4" height={6 + ((h >> (i + 1)) % 6)} fill="#e9e2d4" />
-      ))}
-    </>
-  );
-}
-
-function City({ h, time }: { h: number; time: Time }) {
-  const lit = time !== "day";
-  return (
-    <>
-      <path d="M0 96 L40 84 L80 92 L120 82 L160 90 L200 86 L200 120 L0 120 Z" fill="#9aa9bf" opacity="0.5" />
-      {[6, 26, 44, 66, 84, 104, 126, 146, 166, 184].map((x, i) => {
-        const w = 12 + (i % 3) * 5;
-        const y = 58 + ((h >> i) % 34);
+      <rect width="400" height="240" fill={`url(#${id}-sky)`} />
+      {time !== "day" &&
+        Array.from({ length: 18 }).map((_, i) => <circle key={i} cx={rnd(h, i + 7, 400)} cy={rnd(h, i + 11, 90)} r={0.6 + rnd(h, i, 3) * 0.3} fill="#fff" opacity={0.35 + rnd(h, i + 2, 5) * 0.1} />)}
+      <circle cx={sunX} cy={sunY} r="70" fill={`url(#${id}-glow)`} />
+      <circle cx={sunX} cy={sunY} r="16" fill={sunColour[time]} />
+      {[0, 1, 2, 3].map((i) => {
+        const cx = (rnd(h, 5 + i, 360) + i * 70) % 420;
+        const cy = 30 + rnd(h, 9 + i, 60);
+        const w = 26 + rnd(h, 13 + i, 30);
         return (
-          <g key={x}>
-            <rect x={x} y={y} width={w} height={120 - y} fill={i % 2 ? "#2d4566" : "#3e5a80"} />
-            {Array.from({ length: Math.floor((120 - y) / 8) }).map((_, r) =>
-              Array.from({ length: Math.floor(w / 5) }).map((_, c) => (
-                <rect key={`${r}-${c}`} x={x + 2 + c * 5} y={y + 3 + r * 8} width="2" height="3" fill={lit && (h >> (r + c + i)) % 3 === 0 ? "#ffd98a" : "#dbe6f2"} opacity={lit ? 0.9 : 0.5} />
-              )),
-            )}
+          <g key={i} filter={`url(#${id}-soft)`} opacity={time === "day" ? 0.9 : 0.7}>
+            <ellipse cx={cx} cy={cy} rx={w} ry={7} fill="#fff" />
+            <ellipse cx={cx - w * 0.35} cy={cy + 2} rx={w * 0.5} ry={6} fill="#fff" />
+            <ellipse cx={cx + w * 0.3} cy={cy + 3} rx={w * 0.55} ry={5} fill="#fff" />
           </g>
         );
       })}
-      {/* jacaranda canopy */}
-      {[20, 70, 130, 175].map((x, i) => (
-        <g key={x}>
-          <rect x={x + 5} y="104" width="2" height="12" fill="#5a4028" />
-          <ellipse cx={x + 6} cy="103" rx={10 + (i % 2) * 3} ry="6" fill="#9b8ccf" />
-        </g>
-      ))}
-      <path d="M0 114 H200 V120 H0 Z" fill="#6d8f5e" />
-    </>
-  );
-}
-
-function Bush({ h }: { h: number }) {
-  return (
-    <>
-      <path d="M0 90 L40 78 L80 86 L130 74 L170 84 L200 80 L200 120 L0 120 Z" fill="#c88f5a" opacity="0.55" />
-      <path d="M0 104 Q50 96 100 102 T200 100 V120 H0 Z" fill="#d9b06d" />
-      {/* acacias */}
-      {[30 + (h % 20), 120 + ((h >> 3) % 30)].map((x, i) => (
-        <g key={i}>
-          <path d={`M${x} 112 q1 -10 -2 -18`} stroke="#4a3220" strokeWidth="2" fill="none" />
-          <ellipse cx={x - 2} cy="92" rx={18 + i * 4} ry="5" fill="#5e6b3a" />
-        </g>
-      ))}
-      {/* giraffe & elephant silhouettes */}
-      <g fill="#4a3220" transform={`translate(${70 + ((h >> 5) % 50)},112)`}>
-        <rect x="-4" y="-10" width="8" height="10" rx="1" />
-        <path d="M3 -10 l3 -14 l2 0 l-2 14z" />
-        <path d="M6 -24 l4 -2 l-1 3z" />
-        <rect x="-3.5" y="-2" width="1.5" height="4" />
-        <rect x="2" y="-2" width="1.5" height="4" />
-      </g>
-      <g fill="#4a3220" transform={`translate(${150 + ((h >> 2) % 30)},113)`}>
-        <ellipse cx="0" cy="-6" rx="8" ry="5" />
-        <path d="M6 -8 q6 -2 6 6 q-2 2 -3 -4z" />
-        <rect x="-6" y="-2" width="2" height="4" /><rect x="3" y="-2" width="2" height="4" />
-      </g>
-    </>
-  );
-}
-
-function Winelands({ h }: { h: number }) {
-  return (
-    <>
-      <path d="M0 88 L40 70 L70 80 L110 62 L140 76 L170 68 L200 84 L200 120 L0 120 Z" fill="#8ea3b5" />
-      <path d="M0 98 Q60 88 120 96 T200 92 V120 H0 Z" fill="#7da35f" />
-      {/* vine rows converging */}
-      {[0, 1, 2, 3, 4, 5].map((i) => (
-        <path key={i} d={`M${-20 + i * 48} 120 L${80 + i * 12} 98`} stroke="#3f6a3a" strokeWidth={3 - i * 0.3} opacity="0.8" />
-      ))}
-      {/* Cape Dutch gable */}
-      <g transform={`translate(${120 + (h % 30)},96)`}>
-        <rect x="-16" y="-8" width="32" height="12" fill="#fff" />
-        <path d="M-16 -8 L-8 -16 Q0 -22 8 -16 L16 -8 Z" fill="#fff" />
-        <path d="M-16 -8 L-8 -16 Q0 -22 8 -16 L16 -8" fill="none" stroke="#2f4a3a" strokeWidth="1" />
-        <rect x="-10" y="-5" width="4" height="6" fill="#2f4a3a" /><rect x="6" y="-5" width="4" height="6" fill="#2f4a3a" /><rect x="-2" y="-3" width="4" height="7" fill="#5a4028" />
-      </g>
-      {/* oaks */}
-      {[20, 50].map((x) => (
-        <g key={x}><rect x={x} y="100" width="2" height="8" fill="#5a4028" /><circle cx={x + 1} cy="98" r="6" fill="#4f7a43" /></g>
-      ))}
-    </>
-  );
-}
-
-function Garden({ h }: { h: number }) {
-  return (
-    <>
-      <path d="M0 84 L40 66 L80 78 L120 60 L160 74 L200 68 L200 120 L0 120 Z" fill="#6f9fb4" opacity="0.8" />
-      {/* lagoon */}
-      <path d="M0 100 Q50 94 100 100 T200 98 V112 H0 Z" fill="#5fb0c9" />
-      <path d="M0 106 Q50 102 100 106 T200 104" fill="none" stroke="#fff" strokeWidth="1" opacity="0.5" />
-      <path d="M0 112 Q60 106 120 112 T200 110 V120 H0 Z" fill="#4e8a4a" />
-      {/* forest */}
-      {Array.from({ length: 12 }).map((_, i) => {
-        const x = 4 + i * 17 + ((h >> i) % 6);
-        const hh = 12 + ((h >> (i + 3)) % 10);
-        return <path key={i} d={`M${x} 100 l6 -${hh} l6 ${hh}z`} fill={i % 2 ? "#2f6b43" : "#3f8552"} />;
+      {/* birds */}
+      {[0, 1, 2].map((i) => {
+        const bx = 40 + rnd(h, 17 + i, 320);
+        const by = 50 + rnd(h, 21 + i, 60);
+        return <path key={i} d={`M${bx} ${by} q3 -3 6 0 q3 -3 6 0`} fill="none" stroke="#0b2a4a" strokeWidth="0.9" opacity="0.55" />;
       })}
-      {/* kayak */}
-      <g transform={`translate(${60 + (h % 80)},105)`}>
-        <path d="M-8 0 q8 -3 16 0 q-8 3 -16 0z" fill="var(--brand-sun)" />
-        <path d="M-6 -3 l12 2" stroke="#5a4028" strokeWidth="1" />
-      </g>
-    </>
+    </g>
+  );
+
+  const far = <path d={ridge(h, 20, 150, 46)} fill={p.far} opacity="0.75" />;
+  const mid = <path d={ridge(h, 40, 170, 38)} fill={p.mid} opacity="0.9" />;
+
+  let near: React.ReactNode = <path d={ridge(h, 60, 190, 30)} fill={p.near} />;
+  let fore: React.ReactNode = null;
+
+  switch (scene) {
+    case "coast": {
+      const headland = `M-10 250 L-10 182 L40 166 L80 176 L130 170 L170 184 L200 192 L-10 250Z`;
+      near = (
+        <g>
+          <path d={headland} fill={p.near} />
+          <rect x="-10" y="188" width="420" height="60" fill={`url(#${id}-water)`} />
+          <ellipse cx={sunX} cy="206" rx="22" ry="34" fill={sunColour[time]} opacity="0.18" />
+          {[0, 1, 2, 3].map((i) => (
+            <path key={i} d={`M-10 ${196 + i * 9} q25 -3 50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0`} fill="none" stroke="#fff" strokeWidth="1.1" opacity={0.45 - i * 0.1} />
+          ))}
+        </g>
+      );
+      fore = (
+        <g>
+          <path d="M-10 226 Q80 214 170 222 T410 218 V250 H-10Z" fill={p.ground} />
+          <path d="M-10 228 Q80 217 170 225 T410 221 V226 Q300 224 170 228 T-10 232Z" fill="#fff" opacity="0.5" />
+          <g transform={`translate(${300 + rnd(h, 3, 60)},224)`}>
+            <path d="M0 0 q-2 -26 6 -44" stroke="#4a3220" strokeWidth="3" fill="none" strokeLinecap="round" />
+            {[-160, -130, -95, -60, -30, 0].map((a) => <path key={a} d="M0 0 q16 -6 30 2 q-14 4 -30 -2z" fill="#245a37" transform={`translate(6,-44) rotate(${a})`} />)}
+          </g>
+          <g transform={`translate(${50 + rnd(h, 8, 80)},230)`}>
+            <path d="M0 0 v-16" stroke="#4a3220" strokeWidth="1.5" />
+            <path d="M-14 -16 q14 -10 28 0 z" fill="var(--brand-sun)" />
+            <path d="M-14 -16 q14 -10 28 0" fill="none" stroke="#fff" strokeWidth="0.8" opacity="0.6" />
+          </g>
+        </g>
+      );
+      break;
+    }
+    case "mountain": {
+      const l = 120 + rnd(h, 2, 30);
+      const r = l + 120;
+      near = (
+        <g>
+          <path d={`M-10 250 L-10 200 L40 176 L90 184 L${l} 126 L${r} 126 L${r + 50} 170 L${r + 90} 158 L410 190 L410 250Z`} fill={p.near} />
+          <path d={`M${l} 126 L${r} 126 L${r + 50} 170 L${l - 40} 182Z`} fill="#243a55" opacity="0.55" />
+          <path d={`M${l - 10} 132 q60 -18 ${r - l + 20} 0 q-20 10 -50 8 q-30 -4 -70 2 q-14 2 -20 -10z`} fill="#fff" opacity="0.85" filter={`url(#${id}-soft)`} />
+        </g>
+      );
+      fore = (
+        <g>
+          <path d="M-10 212 Q80 200 170 208 T410 204 V250 H-10Z" fill={p.ground} />
+          {Array.from({ length: 26 }).map((_, i) => (
+            <rect key={i} x={6 + i * 15 + rnd(h, i, 6)} y={210 + rnd(h, i + 3, 10)} width={5 + rnd(h, i + 1, 4)} height={10 + rnd(h, i + 2, 14)} fill={time === "day" ? "#efe7d8" : "#ffe3b0"} opacity="0.95" />
+          ))}
+        </g>
+      );
+      break;
+    }
+    case "city": {
+      near = (
+        <g>
+          {Array.from({ length: 16 }).map((_, i) => {
+            const x = i * 26 + rnd(h, i, 8);
+            const w = 14 + (i % 3) * 7;
+            const y = 120 + rnd(h, i + 5, 70);
+            return (
+              <g key={i}>
+                <rect x={x} y={y} width={w} height={250 - y} fill={i % 2 ? "#2b3c57" : "#3a5076"} />
+                {Array.from({ length: Math.floor((240 - y) / 9) }).map((_, row) =>
+                  Array.from({ length: Math.floor(w / 6) }).map((_, col) => (
+                    <rect key={`${row}-${col}`} x={x + 2 + col * 6} y={y + 4 + row * 9} width="2.5" height="4" fill={time !== "day" && rnd(h, row + col + i, 3) === 0 ? "#ffd98a" : "#dbe6f2"} opacity={time !== "day" ? 0.95 : 0.45} />
+                  )),
+                )}
+              </g>
+            );
+          })}
+        </g>
+      );
+      fore = (
+        <g>
+          <path d="M-10 222 H410 V250 H-10Z" fill={p.ground} />
+          {[30, 110, 200, 290, 370].map((x, i) => (
+            <g key={x}>
+              <rect x={x + 9} y="206" width="3" height="20" fill="#4a3220" />
+              <ellipse cx={x + 10} cy="204" rx={20 + (i % 2) * 6} ry="11" fill="#9b8ccf" />
+              <ellipse cx={x + 2} cy="208" rx={12} ry="7" fill="#8a7bc0" />
+            </g>
+          ))}
+        </g>
+      );
+      break;
+    }
+    case "bush": {
+      near = <path d={ridge(h, 60, 196, 18)} fill={p.near} opacity="0.85" />;
+      fore = (
+        <g>
+          <path d="M-10 214 Q100 204 200 212 T410 208 V250 H-10Z" fill={p.ground} />
+          {[50 + rnd(h, 2, 40), 250 + rnd(h, 6, 60)].map((x, i) => (
+            <g key={i}>
+              <path d={`M${x} 226 q2 -20 -4 -36`} stroke="#4a3220" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+              <path d={`M${x - 6} 190 q${20 + i * 6} -14 ${44 + i * 8} 0 q-22 6 -44 0z`} fill="#55683a" />
+            </g>
+          ))}
+          <g fill="#3b2816" transform={`translate(${140 + rnd(h, 9, 80)},226)`}>
+            <rect x="-8" y="-20" width="16" height="20" rx="2" />
+            <path d="M6 -20 l6 -28 l4 0 l-4 28z" />
+            <path d="M12 -48 l8 -4 l-2 6z" />
+            <rect x="-7" y="-4" width="3" height="8" /><rect x="4" y="-4" width="3" height="8" />
+          </g>
+          <g fill="#3b2816" transform={`translate(${320 + rnd(h, 4, 50)},228)`}>
+            <ellipse cx="0" cy="-12" rx="16" ry="10" />
+            <path d="M12 -16 q12 -4 12 12 q-4 4 -6 -8z" />
+            <rect x="-12" y="-4" width="4" height="8" /><rect x="6" y="-4" width="4" height="8" />
+          </g>
+          {Array.from({ length: 30 }).map((_, i) => <path key={i} d={`M${i * 14 + rnd(h, i, 8)} 240 q1 -8 2 -12`} stroke="#b8924e" strokeWidth="1" fill="none" />)}
+        </g>
+      );
+      break;
+    }
+    case "winelands": {
+      fore = (
+        <g>
+          <path d="M-10 208 Q100 198 200 206 T410 202 V250 H-10Z" fill={p.ground} />
+          {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => <path key={i} d={`M${-60 + i * 70} 250 L${150 + i * 18} 206`} stroke="#3f6a3a" strokeWidth={5 - i * 0.4} opacity="0.85" />)}
+          <g transform={`translate(${250 + rnd(h, 2, 60)},206)`}>
+            <rect x="-34" y="-18" width="68" height="22" fill="#fff" />
+            <path d="M-34 -18 L-18 -34 Q0 -46 18 -34 L34 -18Z" fill="#fff" />
+            <path d="M-34 -18 L-18 -34 Q0 -46 18 -34 L34 -18" fill="none" stroke="#2f4a3a" strokeWidth="1.5" />
+            <rect x="-22" y="-12" width="8" height="12" fill="#2f4a3a" /><rect x="14" y="-12" width="8" height="12" fill="#2f4a3a" /><rect x="-5" y="-8" width="10" height="14" fill="#5a4028" />
+            <path d="M-40 4 H40" stroke="#2f4a3a" strokeWidth="1" />
+          </g>
+          {[40, 90].map((x, i) => (
+            <g key={x}><rect x={x} y="190" width="4" height="20" fill="#4a3220" /><circle cx={x + 2} cy="186" r={14 + i * 3} fill="#466f3f" /><circle cx={x - 6} cy="192" r="9" fill="#3d6338" /></g>
+          ))}
+        </g>
+      );
+      break;
+    }
+    case "garden": {
+      near = (
+        <g>
+          <path d={ridge(h, 60, 186, 26)} fill={p.near} />
+          <rect x="-10" y="200" width="420" height="26" fill={p.water} opacity="0.9" />
+          <path d="M-10 208 q40 -3 80 0 t80 0 t80 0 t80 0 t80 0" fill="none" stroke="#fff" strokeWidth="1" opacity="0.5" />
+        </g>
+      );
+      fore = (
+        <g>
+          <path d="M-10 226 Q120 216 240 224 T410 220 V250 H-10Z" fill={p.ground} />
+          {Array.from({ length: 22 }).map((_, i) => {
+            const x = i * 19 + rnd(h, i, 8);
+            const hh = 22 + rnd(h, i + 3, 18);
+            return <path key={i} d={`M${x} 228 l9 -${hh} l9 ${hh}z`} fill={i % 2 ? "#2f6b43" : "#3f8552"} />;
+          })}
+          <g transform={`translate(${120 + rnd(h, 5, 160)},212)`}>
+            <path d="M-16 0 q16 -6 32 0 q-16 6 -32 0z" fill="var(--brand-sun)" />
+            <path d="M-12 -6 l24 4" stroke="#4a3220" strokeWidth="1.4" />
+            <circle cx="0" cy="-5" r="2.5" fill="#4a3220" />
+          </g>
+        </g>
+      );
+      break;
+    }
+  }
+
+  const overlay = (
+    <g>
+      <rect width="400" height="240" fill={`url(#${id}-vig)`} />
+      <rect width="400" height="240" filter={`url(#${id}-grain)`} opacity="0.6" style={{ mixBlendMode: "multiply" }} />
+    </g>
+  );
+
+  return { ctx, sky, far, mid, near, fore, overlay };
+}
+
+export function Illustration({ scene, seed = "", className = "", label, time }: { scene: Scene; seed?: string; className?: string; label?: string; time?: Time }) {
+  const L = sceneLayers(scene, seed, time);
+  return (
+    <svg viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" className={className} role={label ? "img" : "presentation"} aria-label={label} aria-hidden={label ? undefined : true}>
+      {L.sky}
+      {L.far}
+      {L.mid}
+      {L.near}
+      {L.fore}
+      {L.overlay}
+    </svg>
   );
 }
